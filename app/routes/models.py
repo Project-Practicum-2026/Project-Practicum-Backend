@@ -23,7 +23,10 @@ class Route(Base):
 
     trip: Mapped["Trip"] = relationship(back_populates="route")
     stops: Mapped[list["RouteStop"]] = relationship(back_populates="route")
-    origin_warehouse: Mapped["Warehouse"] = relationship(back_populates="routes")
+    origin_warehouse: Mapped["Warehouse"] = relationship(
+        back_populates="origin_routes",
+        foreign_keys=[origin_warehouse_id]
+    )
 
 
 class RouteStop(Base):
@@ -49,5 +52,5 @@ class RouteStopCargo(Base):
     cargo_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("cargo.id"))
     action: Mapped[str] = mapped_column(String(20))
 
-    route_stop: Mapped["RouteStop"] = relationship(back_populates="cargo_item")
+    route_stop: Mapped["RouteStop"] = relationship(back_populates="cargo_items")
     cargo: Mapped["Cargo"] = relationship(back_populates="route_stop_cargo")
