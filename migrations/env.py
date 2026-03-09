@@ -6,15 +6,7 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.core.config import settings
-from app.core.database import Base
-
-from app.auth.models import User, RefreshToken
-from app.drivers.models import Driver
-from app.fleet.models import Vehicle, VehicleType
-from app.warehouses.models import Warehouse
-from app.routes.models import Route, RouteStop, RouteStopCargo
-from app.trips.models import Trip, TripCrew, GPSLog
-from app.cargo.models import Cargo
+from app.core.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

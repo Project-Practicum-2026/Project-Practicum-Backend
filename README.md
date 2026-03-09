@@ -47,6 +47,10 @@ alembic upgrade head
 ```bash
 uvicorn app.main:app --reload
 ```
+or
+```bash
+uv run fastapi dev app/main.py
+```
 
 ## Git Workflow
 - `main` — production
