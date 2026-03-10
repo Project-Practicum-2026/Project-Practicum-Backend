@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, EmailStr
 
 
@@ -21,3 +22,13 @@ class LoginRequest(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+
+
+class UserResponse(BaseModel):
+    id: uuid.UUID
+    email: EmailStr
+    full_name: str
+    role: str
+    is_active: bool
+
+    model_config = {"from_attributes": True}

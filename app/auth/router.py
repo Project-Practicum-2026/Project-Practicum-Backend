@@ -3,11 +3,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.dependencies import CurrentUser
 from app.auth.schemas import (
     LoginRequest,
     TokenResponse,
     RefreshRequest,
-    RegisterRequest
+    RegisterRequest,
+    UserResponse
 )
 from app.auth.service import (
     authenticate_user,
@@ -51,6 +53,11 @@ async def login(request: LoginRequest, db: DBSession):
             detail="Incorrect email or password"
         )
     return await create_tokens(user, db)
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: CurrentUser):
+    return current_user
 
 
 @router.post("/refresh", response_model=TokenResponse)
