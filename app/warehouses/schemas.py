@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from uuid import UUID
 
 
@@ -7,7 +7,7 @@ class WarehouseBase(BaseModel):
     address: str
     latitude: float
     longitude: float
-    contact_email: str
+    contact_email: EmailStr
     contact_phone: str | None = None
 
 
@@ -22,5 +22,4 @@ class WarehouseUpdate(WarehouseBase):
 class Warehouse(WarehouseBase):
     id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
