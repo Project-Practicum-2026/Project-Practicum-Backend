@@ -11,6 +11,15 @@ class VehicleStatus(str, Enum):
     MAINTENANCE = "maintenance"
 
 
+class VehicleTypeResponse(BaseModel):
+    id: uuid.UUID
+    name: str
+    max_weight_kg: float
+    max_volume_m3: float
+
+    model_config = {"from_attributes": True}
+    
+
 class VehicleBase(BaseModel):
     plate_number: str = Field(..., max_length=20)
     vehicle_type_id: uuid.UUID
@@ -20,11 +29,15 @@ class VehicleCreate(VehicleBase):
     pass
 
 
+class VehicleUpdate(VehicleBase):
+    pass
+
+
 class VehicleResponse(VehicleBase):
     id: uuid.UUID
+    plate_number: str
     status: VehicleStatus
-    created_at: datetime
-    updated_at: datetime
+    vehicle_type: VehicleTypeResponse
 
     model_config = {"from_attributes": True}
 
@@ -36,11 +49,17 @@ class VehicleStatusUpdate(BaseModel):
 class GPSPosition(BaseModel):
     latitude: float
     longitude: float
+    speed_kmh: float | None
     recorded_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class DashboardResponse(BaseModel):
     trip_id: uuid.UUID
     vehicle_id: uuid.UUID
-    plate_number: str
+    driver_full_name: str
     last_gps_position: GPSPosition | None
+    status: str
+
+    model_config = {"from_attributes": True}
