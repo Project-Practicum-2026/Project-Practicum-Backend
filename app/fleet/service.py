@@ -6,7 +6,9 @@ from sqlalchemy.orm import joinedload
 
 from app.fleet.models import Vehicle
 from app.fleet.schemas import VehicleStatus
-from app.trips.models import Trip, GPSLog
+from app.trips.models import Trip, TripCrew, GPSLog
+from app.drivers.models import Driver
+from app.auth.models import User
 
 
 async def get_all_vehicles(db: AsyncSession) -> list[Vehicle]:
