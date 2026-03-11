@@ -48,7 +48,7 @@ async def update_vehicle_status(vehicle: Vehicle, status: VehicleStatus, db: Asy
     return vehicle
 
 
-async def get_active_trips_with_last_gps(db: AsyncSession) -> list[dict]:
+async def get_dashboard(db: AsyncSession) -> list[dict]:
     last_gps_log_sq = (
         select(
             GPSLog.trip_id,
