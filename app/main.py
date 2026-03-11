@@ -8,5 +8,5 @@ app = FastAPI(title="LogiGlobal API")
 
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(drivers_route, prefix="/api/drivers")
-app.include_router(warehouses_router, prefix="/api")
+app.include_router(warehouses_router, prefix="/api/warehouses")
 
