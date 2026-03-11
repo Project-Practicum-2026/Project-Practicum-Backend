@@ -3,7 +3,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_201_CREATED
 
 from app.auth.dependencies import ManagerUser
 from app.core.database import get_db
@@ -18,7 +17,7 @@ from app.fleet.service import (
     get_vehicle_by_id,
     create_vehicle,
     update_vehicle_status,
-    get_active_trips_with_last_gps,
+    get_dashboard,
 )
 
 
@@ -32,7 +31,7 @@ async def list_vehicles(manager: ManagerUser, db: DBSession):
     return await get_all_vehicles(db)
 
 
-@router.post("/vehicles/", response_model=VehicleResponse, status_code=HTTP_201_CREATED)
+@router.post("/vehicles", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
 async def add_vehicle(request: VehicleCreate, manager: ManagerUser, db: DBSession):
     vehicle = await create_vehicle(
         plate_number=request.plate_number,
