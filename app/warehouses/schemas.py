@@ -19,7 +19,7 @@ class WarehouseUpdate(WarehouseBase):
     pass
 
 
-class Warehouse(WarehouseBase):
+class WarehouseResponse(WarehouseBase):
     id: UUID
 
     model_config = {"from_attributes": True}

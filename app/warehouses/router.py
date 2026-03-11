@@ -1,6 +1,6 @@
 import uuid
-from typing import Annotade
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.warehouses.schemas import WarehouseResponse, WarehouseCreate
@@ -14,7 +14,7 @@ from app.warehouses.service import (
 
 router = APIRouter(tags=["Warehouses"])
 
-DBSession = Annotade[AsyncSession, Depends(get_db)]
+DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 @router.get("/", response_model=list[WarehouseResponse])
@@ -35,7 +35,7 @@ async def add_warehouse(request: WarehouseCreate, manager: ManagerUser, db: DBSe
     )
 
 @router.get("/nearest", response_model=WarehouseResponse)
-async def get_nearest_warehouse(
+async def nearest_warehouse(
     lat: Annotated[float, Query(description="Latitude")],
     lng: Annotated[float, Query(description="Longitude")],
     current_user: CurrentUser,
