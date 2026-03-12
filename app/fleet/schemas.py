@@ -11,11 +11,16 @@ class VehicleStatus(str, Enum):
     MAINTENANCE = "maintenance"
 
 
+class ORSProfile(str, Enum):
+    CAR = "driving-car"
+    HGV = "driving-hgv"
+
+
 class VehicleTypeCreate(BaseModel):
     name: str
     max_weight_kg: float
     max_volume_m3: float
-    ors_profile: str
+    ors_profile: ORSProfile
 
 
 class VehicleTypeResponse(BaseModel):
@@ -23,7 +28,7 @@ class VehicleTypeResponse(BaseModel):
     name: str
     max_weight_kg: float
     max_volume_m3: float
-    ors_profile: str
+    ors_profile: ORSProfile
 
     model_config = {"from_attributes": True}
     

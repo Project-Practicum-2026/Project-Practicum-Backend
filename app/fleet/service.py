@@ -62,7 +62,12 @@ async def create_vehicle(
     db.add(vehicle)
     await db.commit()
     await db.refresh(vehicle)
-    return vehicle
+    result = await db.execute(
+        select(Vehicle)
+        .options(joinedload(Vehicle.vehicle_type))
+        .where(Vehicle.id == vehicle.id)
+    )
+    return result.scalar_one()
 
 
 async def update_vehicle_status(vehicle: Vehicle, status: VehicleStatus, db: AsyncSession) -> Vehicle:
