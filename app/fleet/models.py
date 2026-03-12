@@ -22,8 +22,9 @@ class VehicleType(Base):
     __tablename__ = "vehicle_types"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    name: Mapped[str] = mapped_column(String(20), unique=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
     max_weight_kg: Mapped[float] = mapped_column(Numeric(10, 2))
     max_volume_m3: Mapped[float] = mapped_column(Numeric(10, 2))
+    ors_profile: Mapped[str] = mapped_column(String(20), default="driving-hgv")
 
     vehicles: Mapped[list["Vehicle"]] = relationship(back_populates="vehicle_type")

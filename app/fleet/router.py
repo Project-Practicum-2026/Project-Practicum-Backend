@@ -8,22 +8,43 @@ from app.auth.dependencies import ManagerUser
 from app.core.database import get_db
 from app.fleet.schemas import (
     VehicleResponse,
+    VehicleTypeCreate,
     VehicleCreate,
     VehicleStatusUpdate,
-    DashboardResponse,
+    DashboardEntry,
+    VehicleTypeResponse
 )
 from app.fleet.service import (
     get_all_vehicles,
     get_vehicle_by_id,
+    create_vehicle_type,
     create_vehicle,
     update_vehicle_status,
     get_dashboard,
+    get_all_vehicle_types,
 )
 
 
 router = APIRouter(tags=["Fleet"])
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+
+@router.get("/vehicle-types", response_model=list[VehicleTypeResponse])
+async def list_vehicle_types(manager: ManagerUser, db: DBSession):
+    return await get_all_vehicle_types(db)
+
+
+@router.post("/vehicle-types", response_model=VehicleTypeResponse, status_code=status.HTTP_201_CREATED)
+async def add_vehicle_type(request: VehicleTypeCreate, manager: ManagerUser, db: DBSession):
+    return await create_vehicle_type(
+        name=request.name,
+        max_weight_kg=request.max_weight_kg,
+        max_volume_m3=request.max_volume_m3,
+        ors_profile=request.ors_profile,
+        db=db,
+    )
 
 
 @router.get("/vehicles/", response_model=list[VehicleResponse])
@@ -68,6 +89,6 @@ async def change_vehicle_status(
     return await update_vehicle_status(vehicle, request.status, db=db)
 
 
-@router.get("/dashboard/", response_model=list[DashboardResponse])
-async def get_dashboard(manager: ManagerUser, db: DBSession):
-    return await get_active_trips_with_last_gps(db)
+@router.get("/dashboard/", response_model=list[DashboardEntry])
+async def fleet_dashboard(manager: ManagerUser, db: DBSession):
+    return await get_dashboard(db)
