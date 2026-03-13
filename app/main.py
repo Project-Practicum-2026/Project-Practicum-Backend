@@ -5,6 +5,7 @@ from app.auth.router import router as auth_router
 from app.drivers.router import router as drivers_router
 from app.warehouses.router import router as warehouses_router
 from app.fleet.router import router as fleet_router
+from app.core.config import settings
 
 app = FastAPI(title="LogiGlobal API")
 
