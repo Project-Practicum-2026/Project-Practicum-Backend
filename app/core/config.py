@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+
 
 
 settings = Settings()
