@@ -5,7 +5,7 @@ from app.cargo import service as cargo_service
 from app.cargo import schemas as cargo_schemas
 
 @shared_task(name="app.tasks.sync_cargo_task")
-def sync_cargo_task():
+def sync_cargo():
     """
     Fetches cargo data from an external API and upserts it into the database.
     """
@@ -31,11 +31,11 @@ def sync_cargo_task():
         print(f"An error occurred while requesting {e.request.url!r}.")
 
     # After syncing, trigger the build_routes task
-    chain(build_routes_task.s()).apply_async()
+    chain(build_routes.s()).apply_async()
 
 
 @shared_task(name="app.tasks.build_routes_task")
-def build_routes_task():
+def build_routes():
     """
     Placeholder task for building routes.
     """
