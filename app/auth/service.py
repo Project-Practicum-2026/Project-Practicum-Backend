@@ -56,7 +56,11 @@ async def create_tokens(user: User, db: AsyncSession) -> TokenResponse:
     db.add(token)
     await db.commit()
 
-    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        role=user.role
+    )
 
 
 async def refresh_tokens(refresh_token: str, db: AsyncSession) -> TokenResponse | None:
