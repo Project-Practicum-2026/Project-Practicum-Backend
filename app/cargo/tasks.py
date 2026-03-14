@@ -6,9 +6,10 @@ from app.core.database import AsyncSessionLocal
 from app.cargo import service as cargo_service
 from app.cargo import schemas as cargo_schemas
 from app.core.seeder import seed_data
+from app.core.config import settings
 
 
-@shared_task(name="app.tasks.sync_cargo_task")
+@shared_task(name="app.cargo.tasks.sync_cargo")
 def sync_cargo():
     """
     Synchronously triggers the async logic to fetch cargo data from an
@@ -16,12 +17,10 @@ def sync_cargo():
     is unavailable, it seeds the database with mock data.
     """
 
-    async def _sync_cargo_async():
-        EXTERNAL_API_URL = "https://example.com/api/cargo"  # Placeholder
-
+    async def _sync_cargo_async():  # Placeholder
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(EXTERNAL_API_URL)
+                response = await client.get(settings.EXTERNAL_API_URL)
                 response.raise_for_status()
                 cargos_data = response.json()
 
@@ -42,7 +41,7 @@ def sync_cargo():
     chain(build_routes.s()).apply_async()
 
 
-@shared_task(name="app.tasks.build_routes_task")
+@shared_task(name="app.cargo.tasks.build_routes")
 def build_routes():
     """
     Placeholder task for building routes.

@@ -4,22 +4,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cargo import models, schemas
 
 
-async def get_cargo_by_id(db: AsyncSession, cargo_id: uuid.UUID):
-    result = await db.execute(select(models.Cargo).filter(models.Cargo.id == cargo_id))
+async def get_cargo_by_id(cargo_id: uuid.UUID, db: AsyncSession):
+    result = await db.execute(select(models.Cargo).where(models.Cargo.id == cargo_id))
     return result.scalars().first()
 
 
-async def get_all_cargo(db: AsyncSession, status: schemas.CargoStatus | None = None):
+async def get_all_cargo(status: schemas.CargoStatus | None, db: AsyncSession):
     query = select(models.Cargo)
     if status:
-        query = query.filter(models.Cargo.status == status)
+        query = query.where(models.Cargo.status == status)
     result = await db.execute(query)
     return result.scalars().all()
 
 
-async def upsert_cargo(db: AsyncSession, cargo_data: schemas.CargoCreate):
+async def upsert_cargo(cargo_data: schemas.CargoCreate, db: AsyncSession):
     result = await db.execute(
-        select(models.Cargo).filter(models.Cargo.external_id == cargo_data.external_id)
+        select(models.Cargo).where(models.Cargo.external_id == cargo_data.external_id)
     )
     db_cargo = result.scalars().first()
 

@@ -11,10 +11,8 @@ class CargoStatus(str, Enum):
 
 
 class CargoBase(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     external_id: str
-    destination: str
+    description: str
     weight_kg: float
     volume_m3: float
     origin_warehouse_id: uuid.UUID
@@ -32,4 +30,6 @@ class CargoUpdate(CargoBase):
 
 class CargoResponse(CargoBase):
     id: uuid.UUID
+
+    model_config = ConfigDict(from_attributes=True)
 

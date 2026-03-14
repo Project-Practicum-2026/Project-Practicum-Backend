@@ -7,12 +7,12 @@ celery_app = Celery(
     "tasks",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks"],
+    include=["app.cargo.tasks"],
 )
 
 celery_app.conf.beat_schedule = {
     "sync-cargo-every-hour": {
-        "task": "app.tasks.sync_cargo_task",
+        "task": "app.cargo.tasks.sync_cargo",
         "schedule": crontab(minute="0"),
     },
 }

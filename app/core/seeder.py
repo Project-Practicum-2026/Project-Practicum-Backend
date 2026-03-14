@@ -1,11 +1,13 @@
-import asyncio
-import uuid
 import random
+import uuid
 from datetime import datetime, UTC
 
+from sqlalchemy import select
+
+from app.core import base  # noqa: F401
+from app.cargo.models import Cargo
 from app.core.database import AsyncSessionLocal
 from app.warehouses.models import Warehouse
-from app.cargo.models import Cargo
 
 
 async def seed_data():
@@ -18,9 +20,7 @@ async def seed_data():
     async with AsyncSessionLocal() as session:
         # For simplicity, let's check if warehouses exist before seeding.
         # In a real app, you might want a more robust check.
-        result = await session.execute(
-            "SELECT id FROM warehouses LIMIT 1"
-        )
+        result = await session.execute(select(Warehouse).limit(1))
         if result.first():
             print("Database already contains data. Skipping seed.")
             return
@@ -59,7 +59,7 @@ async def seed_data():
 
             cargo = Cargo(
                 external_id=f"EXT-{uuid.uuid4()}",
-                destination=destination.address,
+                description=f"Mock cargo {i+1} from {origin.name} to {destination.name}",
                 weight_kg=random.uniform(10.5, 500.0),
                 volume_m3=random.uniform(1.0, 15.0),
                 origin_warehouse_id=origin.id,

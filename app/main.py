@@ -18,8 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
-app.include_router(drivers_router, prefix="/api/drivers", tags=["drivers"])
-app.include_router(warehouses_router, prefix="/api/warehouses", tags=["warehouses"])
-app.include_router(fleet_router, prefix="/api/fleet", tags=["fleet"])
-app.include_router(cargo_router, prefix="/api/cargo", tags=["cargo"])
+app.include_router(auth_router, prefix="/api/auth")
+app.include_router(drivers_router, prefix="/api/drivers")
+app.include_router(warehouses_router, prefix="/api/warehouses")
+app.include_router(fleet_router, prefix="/api/fleet")
+app.include_router(cargo_router, prefix="/api/cargo")

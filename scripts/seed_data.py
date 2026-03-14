@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-
 # This is a bit of a hack to allow the script to be run from the root of the project
 # and find the 'app' module. A better solution would be to make this a proper CLI command
 # with the project installed in editable mode.

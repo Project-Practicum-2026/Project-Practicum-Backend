@@ -1,36 +1,35 @@
 import uuid
-from typing import List
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.auth.dependencies import ManagerUser
 from app.cargo import service, schemas
 
-router = APIRouter()
+router = APIRouter(tags=["Cargo"])
+
+DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
-@router.get("/", response_model=List[schemas.CargoResponse])
-def list_cargo(
+@router.get("/", response_model=list[schemas.CargoResponse])
+async def list_cargo(
     manager: ManagerUser,
-    db: Session = Depends(get_db),
-    status: schemas.CargoStatus | None = None,
+    db: DBSession,
+    status: schemas.CargoStatus | None = None
 ):
     """
     List all cargo. Managers only.
     """
-    return service.get_all_cargo(db, status=status)
+    return await service.get_all_cargo(status=status, db=db)
 
 
 @router.get("/{cargo_id}", response_model=schemas.CargoResponse)
-def get_cargo(
-    cargo_id: uuid.UUID,
-    db: Session = Depends(get_db),
-):
+async def get_cargo(cargo_id: uuid.UUID, db: DBSession):
     """
     Get details of a specific cargo.
     """
-    db_cargo = service.get_cargo_by_id(db, cargo_id=cargo_id)
+    db_cargo = await service.get_cargo_by_id(cargo_id=cargo_id, db=db)
     if db_cargo is None:
         raise HTTPException(status_code=404, detail="Cargo not found")
     return db_cargo
