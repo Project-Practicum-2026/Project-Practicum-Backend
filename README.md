@@ -1,4 +1,11 @@
-# Project-Practicum-Backend
+# LogiGlobal Backend
+
+## Tech Stack
+- Python 3.12 + FastAPI
+- SQLAlchemy async + PostgreSQL 16
+- Redis 7 + Celery
+- Docker Compose
+- uv
 
 ## Requirements
 - Python 3.12
@@ -9,8 +16,8 @@
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<your-repo>.git
-cd <repo-name>
+git clone https://github.com/Project-Practicum-2026/Project-Practicum-Backend.git
+cd Project-Practicum-Backend
 git checkout develop
 ```
 
@@ -31,25 +38,28 @@ uv sync
 ```bash
 cp .env.example .env
 ```
-Open `.env` and fill in the values.
 
-### 5. Start database
+### 5. Start all services
 ```bash
-docker compose up -d
+docker compose up --build
 ```
+API: http://localhost:8000
 
-### 6. Run migrations
+Swagger UI: http://localhost:8000/docs
+
+### 6. Run migrations (locally without Docker)
 ```bash
 alembic upgrade head
 ```
 
-### 7. Start the server
-```bash
-uvicorn app.main:app --reload
-```
-or
+### 7. Start server locally
 ```bash
 uv run fastapi dev app/main.py
+```
+
+## Testing
+```bash
+uv run pytest tests/ -v
 ```
 
 ## Git Workflow
@@ -58,4 +68,5 @@ uv run fastapi dev app/main.py
 - `feature/*` — new features
 - `fix/*` — bug fixes
 
-All feature branches are created from `develop` and merged back via PR.
+## Versions
+- `v0.1.0` — Auth, Drivers, Warehouses, Fleet
