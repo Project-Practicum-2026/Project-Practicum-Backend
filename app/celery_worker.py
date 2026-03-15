@@ -7,7 +7,7 @@ celery_app = Celery(
     "tasks",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.cargo.tasks"],
+    include=["app.cargo.tasks", "app.routes.tasks"],
 )
 
 celery_app.conf.beat_schedule = {
