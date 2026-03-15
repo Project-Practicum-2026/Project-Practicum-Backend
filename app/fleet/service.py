@@ -52,16 +52,19 @@ async def create_vehicle_type(
 async def create_vehicle(
     plate_number: str,
     vehicle_type_id: uuid.UUID,
-    db: AsyncSession
+    current_warehouse_id: uuid.UUID | None,
+    db: AsyncSession,
 ) -> Vehicle:
     vehicle = Vehicle(
         plate_number=plate_number,
         vehicle_type_id=vehicle_type_id,
         status=VehicleStatus.AVAILABLE,
+        current_warehouse_id=current_warehouse_id,
     )
     db.add(vehicle)
     await db.commit()
     await db.refresh(vehicle)
+
     result = await db.execute(
         select(Vehicle)
         .options(joinedload(Vehicle.vehicle_type))

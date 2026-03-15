@@ -7,6 +7,7 @@ from app.cargo import service as cargo_service
 from app.cargo import schemas as cargo_schemas
 from app.core.seeder import seed_data
 from app.core.config import settings
+from app.routes.tasks import build_routes
 
 
 @shared_task(name="app.cargo.tasks.sync_cargo")
@@ -38,7 +39,12 @@ def sync_cargo():
     asyncio.run(_sync_cargo_async())
 
     # After syncing (or seeding), trigger the build_routes task
-    chain(build_routes.s()).apply_async()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(_sync_cargo_async())
+    finally:
+        loop.close()
 
 
 @shared_task(name="app.cargo.tasks.build_routes")

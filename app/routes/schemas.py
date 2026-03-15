@@ -16,7 +16,7 @@ class RouteStatus(str, Enum):
 
 class RouteStopCargoResponse(BaseModel):
     id: uuid.UUID
-    cargo_id: CargoResponse
+    cargo: CargoResponse
     action: str
 
     model_config = {"from_attributes": True}
@@ -48,10 +48,10 @@ class RouteResponse(BaseModel):
 
 
 class RouteDetailResponse(RouteResponse):
-    stop: list[RouteStopResponse]
+    stops: list[RouteStopResponse]
     origin_warehouse: WarehouseResponse
 
     model_config = {"from_attributes": True}
 
-class TakeRouteRequest(RouteDetailResponse):
+class TakeRouteRequest(BaseModel):
     version: int

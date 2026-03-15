@@ -23,7 +23,7 @@ async def get_route_by_id(route_id: uuid.UUID, db: AsyncSession) -> Route | None
         .options(
             joinedload(Route.origin_warehouse),
             selectinload(Route.stops).joinedload(RouteStop.warehouse),
-            selectinload(Route.stops).joinedload(RouteStop.cargo_items).joinedload(RouteStopCargo.cargo)
+            selectinload(Route.stops).selectinload(RouteStop.cargo_items).joinedload(RouteStopCargo.cargo)
         )
         .where(Route.id == route_id)
     )
@@ -45,7 +45,7 @@ async def take_route(
             Route.version == version
         )
         .values(
-            status="in_progress",
+            status="taken",
             version=version + 1,
         )
         .returning(Route)
