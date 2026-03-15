@@ -5,9 +5,7 @@ from celery import shared_task, chain
 from app.core.database import AsyncSessionLocal
 from app.cargo import service as cargo_service
 from app.cargo import schemas as cargo_schemas
-from app.core.seeder import seed_data
 from app.core.config import settings
-from app.routes.tasks import build_routes
 
 
 @shared_task(name="app.cargo.tasks.sync_cargo")
@@ -33,8 +31,7 @@ def sync_cargo():
         except httpx.HTTPStatusError as e:
             print(f"HTTP error occurred: {e}")
         except httpx.RequestError as e:
-            print(f"Could not connect to external API: {e}. Running fallback data seeder.")
-            await seed_data()
+            print(f"Could not connect to external API: {e}. Skipping sync.")
 
     asyncio.run(_sync_cargo_async())
 
