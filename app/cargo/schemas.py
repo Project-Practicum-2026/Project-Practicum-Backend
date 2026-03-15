@@ -19,6 +19,8 @@ class CargoBase(BaseModel):
     dest_warehouse_id: uuid.UUID
     status: CargoStatus = CargoStatus.PENDING
 
+    model_config = {"from_attributes": True}
+
 
 class CargoCreate(CargoBase):
     pass

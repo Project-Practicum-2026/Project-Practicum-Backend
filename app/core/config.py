@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     EXTERNAL_API_URL: str = "https://example.com/api/cargo"
 
+    ORS_API_KEY: str = ""
+
     CORS_ORIGINS: str = "http://localhost:5173"
 
 

@@ -35,3 +35,7 @@ class Warehouse(Base):
         back_populates="dest_warehouse",
         foreign_keys="Cargo.dest_warehouse_id"
     )
+    parked_vehicles: Mapped[list["Vehicle"]] = relationship(
+        back_populates="current_warehouse",
+        foreign_keys="Vehicle.current_warehouse_id"
+    )
