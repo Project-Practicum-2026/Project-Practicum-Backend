@@ -36,6 +36,7 @@ class VehicleTypeResponse(BaseModel):
 class VehicleCreate(BaseModel):
     plate_number: str = Field(..., max_length=20)
     vehicle_type_id: uuid.UUID
+    current_warehouse_id: uuid.UUID | None = None
 
 
 class VehicleUpdate(BaseModel):
@@ -48,6 +49,7 @@ class VehicleResponse(BaseModel):
     plate_number: str
     status: VehicleStatus
     vehicle_type: VehicleTypeResponse
+    current_warehouse_id: uuid.UUID | None = None
 
     model_config = {"from_attributes": True}
 

@@ -12,7 +12,7 @@ class Cargo(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     external_id: Mapped[str] = mapped_column(String(100), unique=True)
-    destination: Mapped[str] = mapped_column(String(500))
+    description: Mapped[str] = mapped_column(String(500))
     weight_kg: Mapped[float] = mapped_column(Numeric(10, 2))
     volume_m3: Mapped[float] = mapped_column(Numeric(10, 2))
     origin_warehouse_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("warehouses.id"))

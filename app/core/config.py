@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    EXTERNAL_API_URL: str = "https://example.com/api/cargo"
+
+    ORS_API_KEY: str = ""
+
     CORS_ORIGINS: str = "http://localhost:5173"
 
 

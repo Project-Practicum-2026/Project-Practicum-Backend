@@ -54,12 +54,12 @@ async def list_vehicles(manager: ManagerUser, db: DBSession):
 
 @router.post("/vehicles", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
 async def add_vehicle(request: VehicleCreate, manager: ManagerUser, db: DBSession):
-    vehicle = await create_vehicle(
+    return await create_vehicle(
         plate_number=request.plate_number,
         vehicle_type_id=request.vehicle_type_id,
-        db=db
+        current_warehouse_id=request.current_warehouse_id,
+        db=db,
     )
-    return vehicle
 
 
 @router.get("/vehicles/{vehicle_id}", response_model=VehicleResponse)

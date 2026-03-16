@@ -16,6 +16,7 @@ class Route(Base):
     total_distance_km: Mapped[float] = mapped_column(Numeric(10, 2))
     estimated_duration_min: Mapped[int] = mapped_column(Integer)
     crew_required: Mapped[bool] = mapped_column(Boolean(), default=False)
+    version: Mapped[int] = mapped_column(Integer, default=0)
     total_weight_kg: Mapped[float] = mapped_column(Numeric(10, 2))
     total_volume_m3: Mapped[float] = mapped_column(Numeric(10, 2))
     built_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))

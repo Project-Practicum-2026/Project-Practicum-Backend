@@ -12,8 +12,10 @@ class Trip(Base):
     route_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("routes.id"), unique=True)
     vehicle_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("vehicles.id"))
     status: Mapped[str] = mapped_column(String(20), default="waiting")
-    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    finished_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True)
     first_email_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     second_email_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
