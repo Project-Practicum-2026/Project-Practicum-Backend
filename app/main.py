@@ -9,6 +9,7 @@ from app.drivers.router import router as drivers_router
 from app.fleet.router import router as fleet_router
 from app.routes.router import router as routes_router
 from app.warehouses.router import router as warehouses_router
+from app.trips.router import router as trips_router
 
 app = FastAPI(title="LogiGlobal API")
 
@@ -26,3 +27,4 @@ app.include_router(warehouses_router, prefix="/api/warehouses")
 app.include_router(fleet_router, prefix="/api/fleet")
 app.include_router(cargo_router, prefix="/api/cargo")
 app.include_router(routes_router, prefix="/api/routes")
+app.include_router(trips_router, prefix="/api/trips")

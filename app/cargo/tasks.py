@@ -44,11 +44,3 @@ def sync_cargo():
         loop.close()
 
 
-@shared_task(name="app.cargo.tasks.build_routes")
-def build_routes():
-    """
-    Placeholder task for building routes.
-    """
-    print("Building routes...")
-    # In a real scenario, this task would trigger the route building logic.
-    return "Routes built successfully."
