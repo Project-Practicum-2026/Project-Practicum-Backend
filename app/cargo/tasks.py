@@ -2,7 +2,7 @@ import asyncio
 import httpx
 from celery import shared_task, chain
 
-from app.core.database import AsyncSessionLocal
+from app.core.database import get_celery_session
 from app.cargo import service as cargo_service
 from app.cargo import schemas as cargo_schemas
 from app.core.config import settings
@@ -23,7 +23,7 @@ def sync_cargo():
                 response.raise_for_status()
                 cargos_data = response.json()
 
-            async with AsyncSessionLocal() as session:
+            async with get_celery_session() as session:
                 for cargo_data in cargos_data:
                     cargo_create = cargo_schemas.CargoCreate(**cargo_data)
                     await cargo_service.upsert_cargo(session, cargo_create)

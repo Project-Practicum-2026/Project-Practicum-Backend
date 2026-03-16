@@ -5,7 +5,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.orm import joinedload
 
 from app.core.config import settings
-from app.core.database import AsyncSessionLocal
+from app.core.database import get_celery_session
 from app.core import base  # noqa: F401
 from app.routes.models import Route, RouteStop, RouteStopCargo
 from app.cargo.models import Cargo
@@ -18,7 +18,7 @@ def build_routes():
     async def _build_routes_async():
 
         # ── Крок 1: Читаємо всі дані ──────────────────────────────────────────
-        async with AsyncSessionLocal() as db:
+        async with get_celery_session() as db:
             # Отримуємо всі available ТЗ
             vehicles_result = await db.execute(
                 select(Vehicle)
@@ -66,7 +66,7 @@ def build_routes():
                         cargo_ids_from_routes.add(item.cargo_id)
 
         # ── Крок 2: Видаляємо старі available маршрути ────────────────────────
-        async with AsyncSessionLocal() as db:
+        async with get_celery_session() as db:
             routes_result = await db.execute(
                 select(Route.id).where(Route.status == "available")
             )
@@ -91,7 +91,7 @@ def build_routes():
             await db.commit()
 
         # ── Крок 3: Скидаємо статус вантажів назад в pending ──────────────────
-        async with AsyncSessionLocal() as db:
+        async with get_celery_session() as db:
             if cargo_ids_from_routes:
                 cargos_result = await db.execute(
                     select(Cargo).where(Cargo.id.in_(cargo_ids_from_routes))
@@ -101,7 +101,7 @@ def build_routes():
                 await db.commit()
 
         # ── Крок 4: Формуємо запит до ORS Optimization ────────────────────────
-        async with AsyncSessionLocal() as db:
+        async with get_celery_session() as db:
             # Отримуємо актуальні pending вантажі
             pending_result = await db.execute(
                 select(Cargo).where(Cargo.status == "pending")
@@ -193,7 +193,7 @@ def build_routes():
                 return
 
         # ── Крок 6: Зберігаємо маршрути в БД ──────────────────────────────────
-        async with AsyncSessionLocal() as db:
+        async with get_celery_session() as db:
             routes_built = 0
 
             for ors_route in result.get("routes", []):

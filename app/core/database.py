@@ -22,3 +22,12 @@ class Base(DeclarativeBase):
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
+def get_celery_session():
+    celery_engine = create_async_engine(
+        str(settings.DATABASE_URL),
+        echo=True,
+        pool_size=1,
+        max_overflow=0,
+    )
+    return async_sessionmaker(celery_engine, expire_on_commit=False)()
