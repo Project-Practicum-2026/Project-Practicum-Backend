@@ -26,7 +26,7 @@ def sync_cargo():
             async with get_celery_session() as session:
                 for cargo_data in cargos_data:
                     cargo_create = cargo_schemas.CargoCreate(**cargo_data)
-                    await cargo_service.upsert_cargo(session, cargo_create)
+                    await cargo_service.upsert_cargo(cargo_data=cargo_create, db=session)
 
         except httpx.HTTPStatusError as e:
             print(f"HTTP error occurred: {e}")
