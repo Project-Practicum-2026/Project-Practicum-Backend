@@ -44,3 +44,20 @@ async def get_nearest_warehouse(db: AsyncSession, lat: float, lng: float) -> War
 
     nearest = min(warehouses, key=lambda w: haversine(lat, lng, w.latitude, w.longitude))
     return nearest
+
+async def update_warehouse(
+    warehouse: Warehouse,
+    data: dict,
+    db: AsyncSession,
+) -> Warehouse:
+    for field, value in data.items():
+        setattr(warehouse, field, value)
+
+    await db.commit()
+    await db.refresh(warehouse)
+    return warehouse
+
+
+async def delete_warehouse(warehouse: Warehouse, db: AsyncSession) -> None:
+    await db.delete(warehouse)
+    await db.commit()

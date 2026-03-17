@@ -7,15 +7,20 @@ from starlette.status import HTTP_201_CREATED
 
 from app.auth.dependencies import ManagerUser
 from app.core.database import get_db
-from app.drivers.schemas import DriverResponse, DriverCreate, \
+from app.drivers.schemas import (
+    DriverResponse,
+    DriverCreate,
+    DriverUpdate,
     DriverStatusUpdate
+)
 from app.drivers.service import (
     get_all_drivers,
     get_driver_by_id,
     create_driver,
-    update_driver_status
+    update_driver,
+    update_driver_status,
+    delete_driver
 )
-
 router = APIRouter(tags=["Drivers"])
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -69,3 +74,40 @@ async def change_driver_status(
             detail="Driver not found"
         )
     return await update_driver_status(driver, request.status, db=db)
+
+
+@router.patch("/{driver_id}", response_model=DriverResponse)
+async def edit_driver(
+    driver_id: uuid.UUID,
+    request: DriverUpdate,
+    manager: ManagerUser,
+    db: DBSession,
+):
+    driver = await get_driver_by_id(driver_id, db)
+    if not driver:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Driver not found",
+        )
+    try:
+        return await update_driver(
+            driver,
+            request.model_dump(exclude_unset=True),
+            db,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.delete("/{driver_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_driver(driver_id: uuid.UUID, manager: ManagerUser, db: DBSession):
+    driver = await get_driver_by_id(driver_id, db)
+    if not driver:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Driver not found"
+        )
+    await delete_driver(driver, db)

@@ -27,5 +27,12 @@ class DriverCreate(BaseModel):
     home_warehouse_id: uuid.UUID | None = None
 
 
+class DriverUpdate(BaseModel):
+    full_name: str | None = None
+    phone: str | None = None
+    email: EmailStr | None = None
+    home_warehouse_id: uuid.UUID | None = None
+
+
 class DriverStatusUpdate(BaseModel):
     status: str

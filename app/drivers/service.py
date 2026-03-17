@@ -68,8 +68,43 @@ async def create_driver(
     return driver
 
 
+async def update_driver(
+    driver: Driver,
+    data: dict,
+    db: AsyncSession
+) -> Driver:
+    user_fields = {"full_name", "phone", "email"}
+    driver_fields = {"home_warehouse_id"}
+
+    for field, value in data.items():
+        if value is None:
+            continue
+        if field in user_fields:
+            if field == "email":
+                existing = await get_user_by_email(value, db)
+                if existing and existing.id != driver.user_id:
+                    raise ValueError("Email already taken")
+                value = value.lower()
+            setattr(driver.user, field, value)
+        elif field in driver_fields:
+            setattr(driver, field, value)
+
+    await db.commit()
+    await db.refresh(driver)
+    await db.refresh(driver.user)
+    driver.user = driver.user
+    return driver
+
+
 async def update_driver_status(driver: Driver, status: str, db: AsyncSession) -> Driver:
     driver.status = status
     await db.commit()
     await db.refresh(driver)
     return driver
+
+
+async def delete_driver(driver: Driver, db: AsyncSession) -> None:
+    user = driver.user
+    await db.delete(driver)
+    await db.delete(user)
+    await db.commit()

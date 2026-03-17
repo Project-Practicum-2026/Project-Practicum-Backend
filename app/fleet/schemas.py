@@ -40,8 +40,15 @@ class VehicleCreate(BaseModel):
 
 
 class VehicleUpdate(BaseModel):
-    plate_number: str = Field(..., max_length=20)
-    vehicle_type_id: uuid.UUID
+    plate_number: str | None = None
+    vehicle_type_id: uuid.UUID | None = None
+    current_warehouse_id: uuid.UUID | None = None
+
+class VehicleTypeUpdate(BaseModel):
+    name: str | None = None
+    max_weight_kg: float | None = None
+    max_volume_m3: float | None = None
+    ors_profile: ORSProfile | None = None
 
 
 class VehicleResponse(BaseModel):
