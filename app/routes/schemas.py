@@ -27,6 +27,7 @@ class RouteStopResponse(BaseModel):
     stop_order: int
     warehouse: WarehouseResponse
     estimated_arrival: datetime | None
+    actual_arrival: datetime | None
     distance_from_prev_km: float
     cargo_items: list[RouteStopCargoResponse]
 
@@ -55,3 +56,18 @@ class RouteDetailResponse(RouteResponse):
 
 class TakeRouteRequest(BaseModel):
     version: int
+
+
+class RouteStopArrivalResponse(BaseModel):
+    id: uuid.UUID
+    stop_order: int
+    warehouse: WarehouseResponse
+    estimated_arrival: datetime | None
+    actual_arrival: datetime | None
+    distance_from_prev_km: float
+    cargo_items: list[RouteStopCargoResponse]
+    next_stop: "RouteStopArrivalResponse | None" = None
+
+    model_config = {"from_attributes": True}
+
+RouteStopArrivalResponse.model_rebuild()
