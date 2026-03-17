@@ -34,46 +34,6 @@ WAREHOUSES = [
         "contact_email": "rivne@logiglobal.com",
         "contact_phone": "+380362123456",
     },
-    {
-        "name": "Житомир Склад",
-        "address": "вул. Велика Бердичівська 1, Житомир",
-        "latitude": 50.2547,
-        "longitude": 28.6587,
-        "contact_email": "zhytomyr@logiglobal.com",
-        "contact_phone": "+380412345678",
-    },
-    {
-        "name": "Вінниця Дистрибуція",
-        "address": "вул. Соборна 1, Вінниця",
-        "latitude": 49.2331,
-        "longitude": 28.4682,
-        "contact_email": "vinnytsia@logiglobal.com",
-        "contact_phone": "+380432567890",
-    },
-    {
-        "name": "Хмельницький Термінал",
-        "address": "вул. Проскурівська 1, Хмельницький",
-        "latitude": 49.4229,
-        "longitude": 26.9871,
-        "contact_email": "khmelnytskyi@logiglobal.com",
-        "contact_phone": "+380382678901",
-    },
-    {
-        "name": "Луцьк Склад",
-        "address": "вул. Лесі Українки 1, Луцьк",
-        "latitude": 50.7472,
-        "longitude": 25.3254,
-        "contact_email": "lutsk@logiglobal.com",
-        "contact_phone": "+380332789012",
-    },
-    {
-        "name": "Тернопіль Логістика",
-        "address": "вул. Руська 1, Тернопіль",
-        "latitude": 49.5535,
-        "longitude": 25.5948,
-        "contact_email": "ternopil@logiglobal.com",
-        "contact_phone": "+380352890123",
-    },
 ]
 
 
