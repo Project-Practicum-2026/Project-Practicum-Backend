@@ -12,7 +12,9 @@ from app.fleet.schemas import (
     VehicleCreate,
     VehicleStatusUpdate,
     DashboardEntry,
-    VehicleTypeResponse
+    VehicleTypeResponse,
+    VehicleUpdate,
+    VehicleTypeUpdate
 )
 from app.fleet.service import (
     get_all_vehicles,
@@ -22,8 +24,12 @@ from app.fleet.service import (
     update_vehicle_status,
     get_dashboard,
     get_all_vehicle_types,
+    update_vehicle,
+    delete_vehicle,
+    update_vehicle_type,
+    get_vehicle_type_by_id,
+    delete_vehicle_type,
 )
-
 
 router = APIRouter(tags=["Fleet"])
 
@@ -92,3 +98,81 @@ async def change_vehicle_status(
 @router.get("/dashboard/", response_model=list[DashboardEntry])
 async def fleet_dashboard(manager: ManagerUser, db: DBSession):
     return await get_dashboard(db)
+
+
+@router.patch("/vehicles/{vehicle_id}", response_model=VehicleResponse)
+async def edit_vehicle(
+    vehicle_id: uuid.UUID,
+    request: VehicleUpdate,
+    manager: ManagerUser,
+    db: DBSession,
+):
+    vehicle = await get_vehicle_by_id(vehicle_id, db)
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vehicle not found",
+        )
+    return await update_vehicle(
+        vehicle,
+        request.model_dump(exclude_unset=True),
+        db,
+    )
+
+
+@router.delete("/vehicles/{vehicle_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_vehicle(
+    vehicle_id: uuid.UUID,
+    manager: ManagerUser,
+    db: DBSession,
+):
+    vehicle = await get_vehicle_by_id(vehicle_id, db)
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vehicle not found",
+        )
+    if not await delete_vehicle(vehicle, db):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete vehicle that is currently on a trip",
+        )
+
+
+@router.patch("/vehicle-types/{type_id}", response_model=VehicleTypeResponse)
+async def edit_vehicle_type(
+    type_id: uuid.UUID,
+    request: VehicleTypeUpdate,
+    manager: ManagerUser,
+    db: DBSession,
+):
+    vtype = await get_vehicle_type_by_id(type_id, db)
+    if not vtype:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vehicle type not found",
+        )
+    return await update_vehicle_type(
+        vtype,
+        request.model_dump(exclude_unset=True),
+        db,
+    )
+
+
+@router.delete("/vehicle-types/{type_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_vehicle_type(
+    type_id: uuid.UUID,
+    manager: ManagerUser,
+    db: DBSession,
+):
+    vtype = await get_vehicle_type_by_id(type_id, db)
+    if not vtype:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Vehicle type not found",
+        )
+    if not await delete_vehicle_type(vtype, db):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete vehicle type — vehicles of this type exist",
+        )

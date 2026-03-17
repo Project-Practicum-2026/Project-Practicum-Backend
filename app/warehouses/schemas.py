@@ -15,8 +15,13 @@ class WarehouseCreate(WarehouseBase):
     pass
 
 
-class WarehouseUpdate(WarehouseBase):
-    pass
+class WarehouseUpdate(BaseModel):
+    name: str | None = None
+    address: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    contact_email: EmailStr | None = None
+    contact_phone: str | None = None
 
 
 class WarehouseResponse(WarehouseBase):

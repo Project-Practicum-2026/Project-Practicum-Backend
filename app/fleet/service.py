@@ -4,11 +4,11 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from app.auth.models import User
+from app.drivers.models import Driver
 from app.fleet.models import Vehicle, VehicleType
 from app.fleet.schemas import VehicleStatus
 from app.trips.models import Trip, TripCrew, GPSLog
-from app.drivers.models import Driver
-from app.auth.models import User
 
 
 async def get_all_vehicles(db: AsyncSession) -> list[Vehicle]:
@@ -134,3 +134,66 @@ async def get_dashboard(db: AsyncSession) -> list[dict]:
         }
         for row in rows
     ]
+
+async def update_vehicle(
+    vehicle: Vehicle,
+    data: dict,
+    db: AsyncSession,
+) -> Vehicle:
+    for field, value in data.items():
+        setattr(vehicle, field, value)
+    await db.commit()
+    await db.refresh(vehicle)
+    result = await db.execute(
+        select(Vehicle)
+        .options(joinedload(Vehicle.vehicle_type))
+        .where(Vehicle.id == vehicle.id)
+    )
+    return result.scalar_one()
+
+
+async def delete_vehicle(
+    vehicle: Vehicle,
+    db: AsyncSession,
+) -> bool:
+    if vehicle.status == VehicleStatus.ON_TRIP:
+        return False
+    await db.delete(vehicle)
+    await db.commit()
+    return True
+
+
+async def update_vehicle_type(
+    vehicle_type: VehicleType,
+    data: dict,
+    db: AsyncSession,
+) -> VehicleType:
+    for field, value in data.items():
+        setattr(vehicle_type, field, value)
+    await db.commit()
+    await db.refresh(vehicle_type)
+    return vehicle_type
+
+
+async def get_vehicle_type_by_id(
+    vehicle_type_id: uuid.UUID,
+    db: AsyncSession,
+) -> VehicleType | None:
+    result = await db.execute(
+        select(VehicleType).where(VehicleType.id == vehicle_type_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def delete_vehicle_type(
+    vehicle_type: VehicleType,
+    db: AsyncSession,
+) -> bool:
+    result = await db.execute(
+        select(Vehicle).where(Vehicle.vehicle_type_id == vehicle_type.id).limit(1)
+    )
+    if result.scalar_one_or_none():
+        return False
+    await db.delete(vehicle_type)
+    await db.commit()
+    return True
