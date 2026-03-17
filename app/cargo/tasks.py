@@ -16,12 +16,10 @@ def sync_cargo():
                 response = await client.get(settings.EXTERNAL_API_URL)
                 response.raise_for_status()
                 cargos_data = response.json()
-
             async with get_celery_session() as session:
                 for cargo_data in cargos_data:
                     cargo_create = cargo_schemas.CargoCreate(**cargo_data)
                     await cargo_service.upsert_cargo(cargo_data=cargo_create, db=session)
-
         except httpx.HTTPStatusError as e:
             print(f"HTTP error occurred: {e}")
         except httpx.RequestError as e:
