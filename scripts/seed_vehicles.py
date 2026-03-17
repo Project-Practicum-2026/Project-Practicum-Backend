@@ -14,8 +14,7 @@ from sqlalchemy import select
 # ТЗ які додаємо на кожен склад
 # (vehicle_type_name, кількість)
 VEHICLES_PER_WAREHOUSE = [
-    ("Фура", 2),
-    ("Вантажівка", 1),
+    ("Вантажівка", 2),
 ]
 
 
