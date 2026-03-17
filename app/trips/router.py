@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import CurrentUser, ManagerUser
+from app.auth.dependencies import CurrentUser, ManagerUser, DriverUser
 from app.core.database import get_db
 from app.trips.schemas import (
     TripResponse,
@@ -13,12 +13,14 @@ from app.trips.schemas import (
     TripStatusUpdate,
     TripStatus,
     ALLOWED_TRANSITIONS,
+    StopArrivalResponse
 )
 from app.trips.service import (
     get_all_trips,
     get_trip_by_id,
     create_trip,
     update_trip_status,
+    confirm_stop_arrival
 )
 
 router = APIRouter(tags=["Trips"])
@@ -107,3 +109,36 @@ async def change_trip_status(
             detail="Only the primary driver of this trip can change its status.",
         )
     return updated_trip
+
+
+
+@router.post("/{trip_id}/stops/{stop_id}/arrive", response_model=StopArrivalResponse)
+async def confirm_arrival(
+    trip_id: uuid.UUID,
+    stop_id: uuid.UUID,
+    driver: DriverUser,
+    db: DBSession,
+):
+    result = await confirm_stop_arrival(
+        trip_id=trip_id,
+        stop_id=stop_id,
+        current_user_id=driver.id,
+        db=db,
+    )
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot confirm arrival. Trip must be on_road and you must be primary driver.",
+        )
+    return {
+        "current_stop_id": result["current_stop"].id,
+        "actual_arrival": result["current_stop"].actual_arrival,
+        "next_stop": {
+            "id": result["next_stop"].id,
+            "stop_order": result["next_stop"].stop_order,
+            "warehouse_id": result["next_stop"].warehouse_id,
+            "latitude": None,
+            "longitude": None,
+        } if result["next_stop"] else None,
+        "message": "Arrived at stop. Proceed to next stop." if result["next_stop"] else "Final stop reached.",
+    }

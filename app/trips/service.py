@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from app.trips.models import Trip, TripCrew
 from app.trips.schemas import TripStatus, ALLOWED_TRANSITIONS
 from app.drivers.models import Driver
-from app.routes.models import Route
+from app.routes.models import Route, RouteStop
 from app.fleet.models import Vehicle
 
 
@@ -160,3 +160,58 @@ async def update_trip_status(
     await db.commit()
     await db.refresh(trip)
     return trip
+
+
+async def confirm_stop_arrival(
+    trip_id: uuid.UUID,
+    stop_id: uuid.UUID,
+    current_user_id: uuid.UUID,
+    db: AsyncSession,
+) -> dict | None:
+    trip = await get_trip_by_id(trip_id, db)
+    if not trip or trip.status != TripStatus.ON_ROAD:
+        return None
+
+    driver_result = await db.execute(
+        select(Driver).where(Driver.user_id == current_user_id)
+    )
+    driver = driver_result.scalar_one_or_none()
+    if not driver:
+        return None
+
+    crew_result = await db.execute(
+        select(TripCrew).where(
+            TripCrew.trip_id == trip_id,
+            TripCrew.driver_id == driver.id,
+            TripCrew.role == "primary",
+        )
+    )
+    if not crew_result.scalar_one_or_none():
+        return None
+
+    stop_result = await db.execute(
+        select(RouteStop).where(RouteStop.id == stop_id)
+    )
+    stop = stop_result.scalar_one_or_none()
+    if not stop:
+        return None
+
+    stop.actual_arrival = datetime.now(UTC)
+    await db.flush()
+
+    next_stop_result = await db.execute(
+        select(RouteStop)
+        .where(
+            RouteStop.route_id == stop.route_id,
+            RouteStop.stop_order == stop.stop_order + 1,
+        )
+    )
+    next_stop = next_stop_result.scalar_one_or_none()
+
+    await db.commit()
+    await db.refresh(stop)
+
+    return {
+        "current_stop": stop,
+        "next_stop": next_stop,
+    }

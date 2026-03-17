@@ -71,3 +71,15 @@ class TripDetailResponse(TripResponse):
 
 class TripStatusUpdate(BaseModel):
     status: TripStatus
+
+
+class NextStopInfo(BaseModel):
+    id: uuid.UUID
+    stop_order: int
+    warehouse_id: uuid.UUID
+
+class StopArrivalResponse(BaseModel):
+    current_stop_id: uuid.UUID
+    actual_arrival: datetime
+    next_stop: NextStopInfo | None
+    message: str

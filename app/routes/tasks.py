@@ -125,22 +125,21 @@ def build_routes():
                 continue
 
             shipments.append({
+                "amount": [
+                    round(float(cargo.weight_kg)),
+                    round(float(cargo.volume_m3) * 100),
+                ],
                 "pickup": {
                     "id": idx * 2,
-                    "location": [float(origin.longitude), float(origin.latitude)],
-                    "amount": [
-                        round(float(cargo.weight_kg)),
-                        round(float(cargo.volume_m3) * 100),  # конвертуємо в цілі числа
-                    ]
+                    "location": [float(origin.longitude),
+                                 float(origin.latitude)],
+                    "service": 1800,
                 },
                 "delivery": {
                     "id": idx * 2 + 1,
                     "location": [float(dest.longitude), float(dest.latitude)],
-                    "amount": [
-                        round(float(cargo.weight_kg)),
-                        round(float(cargo.volume_m3) * 100),
-                    ]
-                }
+                    "service": 1800,
+                },
             })
             cargo_index_map[idx] = cargo
 
@@ -161,7 +160,7 @@ def build_routes():
                 "capacity": [
                     round(float(vehicle.vehicle_type.max_weight_kg)),
                     round(float(vehicle.vehicle_type.max_volume_m3) * 100),
-                ]
+                ],
             })
             vehicle_index_map[idx] = vehicle
 
@@ -172,6 +171,8 @@ def build_routes():
         # ── Крок 5: Запит до ORS Optimization ────────────────────────────────
         async with httpx.AsyncClient() as client:
             try:
+                print(
+                    f"Sending {len(shipments)} shipments, {len(ors_vehicles)} vehicles")
                 response = await client.post(
                     "https://api.openrouteservice.org/optimization",
                     headers={
@@ -181,12 +182,14 @@ def build_routes():
                     json={
                         "shipments": shipments,
                         "vehicles": ors_vehicles,
-                        "geometry": True,
+                        "options": {"g": True},
                     },
                     timeout=30.0,
                 )
                 response.raise_for_status()
                 result = response.json()
+                print(
+                    f"ORS routes count: {len(result.get('routes', []))}")
 
             except httpx.HTTPError as e:
                 print(f"ORS Optimization error: {e}")
@@ -228,8 +231,15 @@ def build_routes():
 
                 total_weight = sum(float(c.weight_kg) for c in route_cargos)
                 total_volume = sum(float(c.volume_m3) for c in route_cargos)
-                total_duration = ors_route.get("duration", 0)
-                total_distance = ors_route.get("distance", 0)
+
+                # FIX: ORS (VROOM) не має поля "summary" на рівні route.
+                # Дистанція та тривалість зберігаються в кожному step.
+                total_duration = sum(
+                    step.get("duration", 0) for step in steps
+                )
+                total_distance = sum(step.get("distance", 0) for step in steps)
+                if total_distance == 0:
+                    total_distance = ors_route.get("distance", 0)
 
                 # Знаходимо origin warehouse (перший pickup)
                 origin_warehouse_id = vehicle.current_warehouse_id
@@ -256,7 +266,7 @@ def build_routes():
 
                 # Створюємо зупинки на основі кроків ORS
                 stop_order = 0
-                created_stops = {}  # warehouse_id → stop
+                created_stops = {}  # (warehouse_id, action) → stop
 
                 for step in steps:
                     if step["type"] not in ("pickup", "delivery"):
@@ -274,6 +284,11 @@ def build_routes():
                         warehouse_id = cargo.dest_warehouse_id
                         action = "delivery"
 
+                    # FIX: Відстань від попередньої зупинки з даних ORS step
+                    step_distance_km = round(
+                        step.get("distance", 0) / 1000, 2
+                    )
+
                     # Якщо зупинка для цього складу вже є — додаємо вантаж
                     stop_key = (warehouse_id, action)
                     if stop_key not in created_stops:
@@ -281,7 +296,7 @@ def build_routes():
                             route_id=route.id,
                             warehouse_id=warehouse_id,
                             stop_order=stop_order,
-                            distance_from_prev_km=0.0,
+                            distance_from_prev_km=step_distance_km,
                         )
                         db.add(stop)
                         await db.flush()
