@@ -32,6 +32,11 @@ class DriverInfo(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TripCrewAdd(BaseModel):
+    driver_id: uuid.UUID
+    role: str = "secondary"
+
+
 class TripCrewResponse(BaseModel):
     id: uuid.UUID
     driver_id: uuid.UUID

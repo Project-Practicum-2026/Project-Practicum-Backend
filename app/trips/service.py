@@ -215,3 +215,55 @@ async def confirm_stop_arrival(
         "current_stop": stop,
         "next_stop": next_stop,
     }
+
+async def add_crew_member(
+    trip_id: uuid.UUID,
+    driver_id: uuid.UUID,
+    role: str,
+    db: AsyncSession,
+) -> TripCrew | None:
+    existing = await db.execute(
+        select(TripCrew).where(
+            TripCrew.trip_id == trip_id,
+            TripCrew.driver_id == driver_id,
+        )
+    )
+    if existing.scalar_one_or_none():
+        return None
+
+    crew = TripCrew(trip_id=trip_id, driver_id=driver_id, role=role)
+    db.add(crew)
+    await db.commit()
+    await db.refresh(crew)
+    return crew
+
+
+async def remove_crew_member(
+    trip_id: uuid.UUID,
+    crew_id: uuid.UUID,
+    db: AsyncSession,
+) -> bool:
+    result = await db.execute(
+        select(TripCrew).where(
+            TripCrew.id == crew_id,
+            TripCrew.trip_id == trip_id,
+        )
+    )
+    crew = result.scalar_one_or_none()
+    if not crew:
+        return False
+    if crew.role == "primary":
+        raise ValueError("Cannot remove primary driver")
+    await db.delete(crew)
+    await db.commit()
+    return True
+
+
+async def get_trip_crew(
+    trip_id: uuid.UUID,
+    db: AsyncSession,
+) -> list[TripCrew]:
+    result = await db.execute(
+        select(TripCrew).where(TripCrew.trip_id == trip_id)
+    )
+    return result.scalars().all()
