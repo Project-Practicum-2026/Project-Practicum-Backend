@@ -12,6 +12,8 @@ from app.trips.schemas import (
     TripCreate,
     TripStatusUpdate,
     TripStatus,
+    TripCrewAdd,
+    TripCrewResponse,
     ALLOWED_TRANSITIONS,
     StopArrivalResponse
 )
@@ -20,7 +22,10 @@ from app.trips.service import (
     get_trip_by_id,
     create_trip,
     update_trip_status,
-    confirm_stop_arrival
+    confirm_stop_arrival,
+    add_crew_member,
+    remove_crew_member,
+    get_trip_crew
 )
 
 router = APIRouter(tags=["Trips"])
@@ -142,3 +147,35 @@ async def confirm_arrival(
         } if result["next_stop"] else None,
         "message": "Arrived at stop. Proceed to next stop." if result["next_stop"] else "Final stop reached.",
     }
+
+
+@router.get("/{trip_id}/crew", response_model=list[TripCrewResponse])
+async def list_crew(trip_id: uuid.UUID, manager: ManagerUser, db: DBSession):
+    trip = await get_trip_by_id(trip_id=trip_id, db=db)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    return await get_trip_crew(trip_id=trip_id, db=db)
+
+
+@router.post("/{trip_id}/crew", response_model=TripCrewResponse, status_code=status.HTTP_201_CREATED)
+async def add_crew(trip_id: uuid.UUID, request: TripCrewAdd, manager: ManagerUser, db: DBSession):
+    trip = await get_trip_by_id(trip_id=trip_id, db=db)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    crew = await add_crew_member(trip_id=trip_id, driver_id=request.driver_id, role=request.role, db=db)
+    if not crew:
+        raise HTTPException(status_code=400, detail="Driver already in crew")
+    return crew
+
+
+@router.delete("/{trip_id}/crew/{crew_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_crew(trip_id: uuid.UUID, crew_id: uuid.UUID, manager: ManagerUser, db: DBSession):
+    trip = await get_trip_by_id(trip_id=trip_id, db=db)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    try:
+        deleted = await remove_crew_member(trip_id=trip_id, crew_id=crew_id, db=db)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
