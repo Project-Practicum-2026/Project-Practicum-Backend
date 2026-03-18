@@ -74,12 +74,29 @@ class GPSPosition(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class RouteStopEntry(BaseModel):
+    stop_id: uuid.UUID
+    stop_order: int
+    warehouse_name: str
+    warehouse_address: str
+    latitude: float
+    longitude: float
+    estimated_arrival: datetime | None
+    actual_arrival: datetime | None
+    distance_from_prev_km: float
+
+    model_config = {"from_attributes": True}
+
+
 class DashboardEntry(BaseModel):
     trip_id: uuid.UUID
+    route_id: uuid.UUID
     vehicle_id: uuid.UUID
     plate_number: str
     driver_full_name: str
-    last_gps: GPSPosition | None
     status: str
+    origin: str
+    destination: str
+    last_gps: GPSPosition | None
 
     model_config = {"from_attributes": True}

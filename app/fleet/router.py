@@ -3,7 +3,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
+from app.routes.schemas import RouteDetailResponse
+from app.routes.service import get_route_by_id
+from app.trips.models import Trip
 from app.auth.dependencies import ManagerUser
 from app.core.database import get_db
 from app.fleet.schemas import (
@@ -14,7 +18,8 @@ from app.fleet.schemas import (
     DashboardEntry,
     VehicleTypeResponse,
     VehicleUpdate,
-    VehicleTypeUpdate
+    VehicleTypeUpdate,
+    RouteStopEntry
 )
 from app.fleet.service import (
     get_all_vehicles,
@@ -29,6 +34,7 @@ from app.fleet.service import (
     update_vehicle_type,
     get_vehicle_type_by_id,
     delete_vehicle_type,
+    get_trip_route
 )
 
 router = APIRouter(tags=["Fleet"])
@@ -99,6 +105,25 @@ async def change_vehicle_status(
 async def fleet_dashboard(manager: ManagerUser, db: DBSession):
     return await get_dashboard(db)
 
+
+@router.get("/dashboard/{trip_id}/route", response_model=RouteDetailResponse)
+async def dashboard_trip_route(trip_id: uuid.UUID, manager: ManagerUser, db: DBSession):
+    result = await db.execute(select(Trip.route_id).where(Trip.id == trip_id))
+    route_id = result.scalar_one_or_none()
+
+    if not route_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trip not found",
+        )
+
+    route = await get_route_by_id(route_id, db)
+    if not route:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Route not found",
+        )
+    return route
 
 @router.patch("/vehicles/{vehicle_id}", response_model=VehicleResponse)
 async def edit_vehicle(
