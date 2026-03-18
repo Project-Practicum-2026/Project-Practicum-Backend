@@ -2,13 +2,16 @@ import uuid
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm import joinedload
 
 from app.auth.models import User
 from app.drivers.models import Driver
 from app.fleet.models import Vehicle, VehicleType
 from app.fleet.schemas import VehicleStatus
+from app.routes.models import Route, RouteStop
 from app.trips.models import Trip, TripCrew, GPSLog
+from app.warehouses.models import Warehouse
 
 
 async def get_all_vehicles(db: AsyncSession) -> list[Vehicle]:
@@ -90,29 +93,62 @@ async def get_dashboard(db: AsyncSession) -> list[dict]:
         .subquery()
     )
 
+    first_order_sq = (
+        select(
+            RouteStop.route_id,
+            func.min(RouteStop.stop_order).label("min_order")
+        )
+        .group_by(RouteStop.route_id)
+        .subquery()
+    )
+
+    last_order_sq = (
+        select(
+            RouteStop.route_id,
+            func.max(RouteStop.stop_order).label("max_order")
+        )
+        .group_by(RouteStop.route_id)
+        .subquery()
+    )
+
+    FirstStop = aliased(RouteStop)
+    LastStop = aliased(RouteStop)
+    OriginWarehouse = aliased(Warehouse)
+    DestWarehouse = aliased(Warehouse)
+
     query = (
         select(
             Trip.id.label("trip_id"),
             Trip.status,
+            Trip.route_id,
             Vehicle.id.label("vehicle_id"),
             Vehicle.plate_number,
             User.full_name.label("driver_full_name"),
+            OriginWarehouse.name.label("origin_name"),
+            DestWarehouse.name.label("destination_name"),
             GPSLog.latitude,
             GPSLog.longitude,
             GPSLog.speed_kmh,
             GPSLog.recorded_at,
         )
         .join(Vehicle, Trip.vehicle_id == Vehicle.id)
+        .join(Route, Trip.route_id == Route.id)
         .join(TripCrew, (TripCrew.trip_id == Trip.id) & (TripCrew.role == "primary"))
         .join(Driver, TripCrew.driver_id == Driver.id)
         .join(User, Driver.user_id == User.id)
+        .join(first_order_sq, Route.id == first_order_sq.c.route_id)
+        .join(FirstStop, (FirstStop.route_id == Route.id) & (FirstStop.stop_order == first_order_sq.c.min_order))
+        .join(OriginWarehouse, FirstStop.warehouse_id == OriginWarehouse.id)
+        .join(last_order_sq, Route.id == last_order_sq.c.route_id)
+        .join(LastStop, (LastStop.route_id == Route.id) & (LastStop.stop_order == last_order_sq.c.max_order))
+        .join(DestWarehouse, LastStop.warehouse_id == DestWarehouse.id)
         .outerjoin(last_gps_sq, Trip.id == last_gps_sq.c.trip_id)
         .outerjoin(
             GPSLog,
             (GPSLog.trip_id == last_gps_sq.c.trip_id) &
             (GPSLog.recorded_at == last_gps_sq.c.last_recorded_at)
         )
-        .where(Trip.status == "on_road") 
+        .where(Trip.status == "on_road")
     )
 
     result = await db.execute(query)
@@ -121,16 +157,58 @@ async def get_dashboard(db: AsyncSession) -> list[dict]:
     return [
         {
             "trip_id": row["trip_id"],
+            "route_id": row["route_id"],
             "status": row["status"],
             "vehicle_id": row["vehicle_id"],
             "plate_number": row["plate_number"],
             "driver_full_name": row["driver_full_name"],
+            "origin": row["origin_name"],
+            "destination": row["destination_name"],
             "last_gps": {
-                "latitude": row["latitude"],
-                "longitude": row["longitude"],
-                "speed_kmh": row["speed_kmh"],
+                "latitude": float(row["latitude"]),
+                "longitude": float(row["longitude"]),
+                "speed_kmh": float(row["speed_kmh"]) if row["speed_kmh"] else None,
                 "recorded_at": row["recorded_at"],
             } if row["latitude"] is not None else None,
+        }
+        for row in rows
+    ]
+
+
+async def get_trip_route(trip_id: uuid.UUID, db: AsyncSession) -> list[dict]:
+    query = (
+        select(
+            RouteStop.id.label("stop_id"),
+            RouteStop.stop_order,
+            RouteStop.estimated_arrival,
+            RouteStop.actual_arrival,
+            RouteStop.distance_from_prev_km,
+            Warehouse.name.label("warehouse_name"),
+            Warehouse.address.label("warehouse_address"),
+            Warehouse.latitude.label("warehouse_lat"),
+            Warehouse.longitude.label("warehouse_lng"),
+        )
+        .join(Route, RouteStop.route_id == Route.id)
+        .join(Trip, Trip.route_id == Route.id)
+        .join(Warehouse, RouteStop.warehouse_id == Warehouse.id)
+        .where(Trip.id == trip_id)
+        .order_by(RouteStop.stop_order)
+    )
+
+    result = await db.execute(query)
+    rows = result.mappings().all()
+
+    return [
+        {
+            "stop_id": row["stop_id"],
+            "stop_order": row["stop_order"],
+            "warehouse_name": row["warehouse_name"],
+            "warehouse_address": row["warehouse_address"],
+            "latitude": float(row["warehouse_lat"]),
+            "longitude": float(row["warehouse_lng"]),
+            "estimated_arrival": row["estimated_arrival"],
+            "actual_arrival": row["actual_arrival"],
+            "distance_from_prev_km": float(row["distance_from_prev_km"]),
         }
         for row in rows
     ]
